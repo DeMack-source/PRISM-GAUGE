@@ -58,13 +58,14 @@
 
   <video id="video-bg" autoplay playsinline muted></video>
   <div id="canvas-container"></div>
+<div class="hud-interface" id="hud">
+    <div id="horizon-line"></div> 
 
-  <div class="hud-interface" id="hud">
     <div class="top-bar">
       <div class="status-pill" id="mode-indicator">Studio Mode (Offline)</div>
       <button class="pill accent" onclick="toggleCamera()" style="padding: 6px 12px;">Toggle AR Lens</button>
     </div>
-  </div>
+</div>
 
   <nav class="pill-nav">
     <button class="pill active" onclick="setTool('perspective', this)">Perspective</button>
