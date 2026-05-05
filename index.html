@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Prism-Gauge | Artist HUD</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+  <style>
+    :root {
+      --cyan: #00f2ff;
+      --gold: #c9a84c;
+      --bg: #050507;
+      --glass: rgba(255, 255, 255, 0.08);
+    }
+
+    body { margin: 0; background: var(--bg); color: white; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
+
+    /* ── CANVAS LAYERS ── */
+    #canvas-container { position: fixed; inset: 0; z-index: 1; }
+    #video-bg { position: fixed; inset: 0; z-index: 0; object-fit: cover; display: none; transform: scaleX(-1); }
+
+    /* ── HUD UI ── */
+    .hud-interface { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+    
+    .top-bar {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; pointer-events: auto;
+    }
+
+    .status-pill {
+      background: var(--glass); backdrop-filter: blur(10px);
+      padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* ── MAIN PILL NAV ── */
+    .pill-nav {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: flex; gap: 8px; background: rgba(0,0,0,0.8);
+      padding: 6px; border-radius: 40px; border: 1px solid var(--glass);
+      backdrop-filter: blur(15px); pointer-events: auto;
+    }
+
+    .pill {
+      background: none; border: none; color: rgba(255,255,255,0.6);
+      font-size: 11px; font-weight: 600; padding: 12px 20px; border-radius: 30px;
+      cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pill.active { background: white; color: black; }
+    .pill.accent { border: 1px solid var(--cyan); color: var(--cyan); }
+
+    /* ── GUIDE LINES ── */
+    .guide-line { position: absolute; background: rgba(0, 242, 255, 0.3); pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <video id="video-bg" autoplay playsinline muted></video>
+  <div id="canvas-container"></div>
+
+  <div class="hud-interface" id="hud">
+    <div class="top-bar">
+      <div class="status-pill" id="mode-indicator">Studio Mode (Offline)</div>
+      <button class="pill accent" onclick="toggleCamera()" style="padding: 6px 12px;">Toggle AR Lens</button>
+    </div>
+  </div>
+
+  <nav class="pill-nav">
+    <button class="pill active" onclick="setTool('perspective', this)">Perspective</button>
+    <button class="pill" onclick="setTool('organic', this)">Organic</button>
+    <button class="pill" onclick="setTool('comp', this)">Composition</button>
+    <button class="pill" onclick="setTool('color', this)">Prism/Depth</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
