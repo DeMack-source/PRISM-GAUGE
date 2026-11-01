@@ -513,6 +513,58 @@ input[type="color"] {
   white-space: nowrap;
 }
 #toast.show { opacity: 1; }
+
+/* ─── PRACTICE TAB (added 2026-11-01, local build only) ─────── */
+.tab-btn[data-tab="practice"].active { color: var(--gold); border-color: var(--gold); }
+.nav-btn[data-tab="practice"].active { color: var(--gold); border-color: var(--gold); background: rgba(245,200,66,0.06); }
+.prac-controls { display: flex; flex-direction: column; gap: 12px; }
+.prac-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.prac-btn, .prac-size-btn, .prac-orient-btn {
+  min-height: 44px; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.05);
+  color: var(--text); font-family: var(--font-mono); font-size: 0.65rem;
+  text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;
+}
+.prac-btn.active, .prac-size-btn.active, .prac-orient-btn.active {
+  border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08);
+}
+.prac-btn.locked { border-color: var(--magenta); color: var(--magenta); }
+.prac-file { min-height: 44px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text); max-width: 100%; }
+.prac-select {
+  min-height: 44px; background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
+  font-family: var(--font-mono); font-size: 0.7rem;
+}
+.prac-slider { width: 100%; min-height: 44px; accent-color: var(--gold); }
+.prac-frame {
+  position: relative; width: 100%; margin: 0 auto; background: #05050a;
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  touch-action: none; max-width: 100%;
+}
+.prac-frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#prac-sketch-canvas { touch-action: none; }
+.prac-handle {
+  position: absolute; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gold); border: 3px solid #fff; transform: translate(-50%,-50%);
+  cursor: grab; z-index: 5; touch-action: none; box-shadow: 0 0 12px rgba(0,0,0,0.6);
+}
+.prac-handle.vp { background: var(--cyan); }
+.prac-handle.horizon { background: var(--green); border-radius: 8px; width: 34px; height: 22px; }
+.prac-handle-label {
+  position: absolute; transform: translate(-50%,-140%); font-family: var(--font-mono);
+  font-size: 0.6rem; color: #fff; background: rgba(0,0,0,0.65); padding: 2px 6px; border-radius: 6px; white-space: nowrap;
+}
+.prac-zen-exit { display: none; }
+.prac-zen-mode .prac-controls { display: none; }
+.prac-zen-mode .prac-zen-exit {
+  display: block; position: sticky; top: 0; z-index: 10; width: 100%;
+  min-height: 48px; border-radius: 10px; border: 1px solid var(--gold);
+  background: rgba(0,0,0,0.85); color: var(--gold);
+  font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+}
+.prac-note { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); line-height: 1.6; }
+.prac-status { font-family: var(--font-mono); font-size: 0.65rem; color: var(--gold); min-height: 1.2em; }
+
 </style>
 </head>
 <body>
@@ -544,6 +596,7 @@ input[type="color"] {
         <button class="tab-btn" data-tab="wheel" onclick="switchTab('wheel',this)">Wheel</button>
         <button class="tab-btn" data-tab="mixer" onclick="switchTab('mixer',this)">Mixer</button>
         <button class="tab-btn" data-tab="grid" onclick="switchTab('grid',this)">Grid / AR</button>
+        <button class="tab-btn" data-tab="practice" onclick="switchTab('practice',this)">Practice</button>
       </div>
     </div>
 
@@ -705,6 +758,112 @@ input[type="color"] {
         </div>
       </div>
 
+
+      <!-- ── PRACTICE TAB (added 2026-11-01) ─────────────────── -->
+      <div class="tab-panel" id="tab-practice">
+        <div class="card prac-controls" id="prac-controls">
+          <div class="card-title">Practice — Photo, Grid &amp; Perspective</div>
+          <div class="prac-row">
+            <label class="prac-btn" style="display:flex;align-items:center">📷 Import photo
+              <input type="file" id="prac-photo-input" class="prac-file" accept="image/*" style="display:none">
+            </label>
+            <label class="prac-btn" style="display:flex;align-items:center">📸 Take photo
+              <input type="file" id="prac-camera-input" class="prac-file" accept="image/*" capture="environment" style="display:none">
+            </label>
+          </div>
+          <div>
+            <div class="card-title">Paper / frame</div>
+            <div class="prac-row">
+              <button class="prac-orient-btn active" id="prac-orient-portrait" type="button">Portrait</button>
+              <button class="prac-orient-btn" id="prac-orient-landscape" type="button">Landscape</button>
+            </div>
+            <div class="prac-row" style="margin-top:8px">
+              <button class="prac-size-btn active" type="button" data-prac-aspect="0.5625">9:16</button>
+              <button class="prac-size-btn" type="button" data-prac-aspect="0.8">4:5</button>
+              <button class="prac-size-btn" type="button" data-prac-aspect="1">1:1</button>
+              <button class="prac-size-btn" type="button" data-prac-aspect="1.3333">4:3</button>
+              <button class="prac-size-btn" type="button" data-prac-aspect="1.7778">16:9</button>
+              <button class="prac-size-btn" type="button" data-prac-aspect="0.7071">A4</button>
+            </div>
+            <p class="prac-note">Paper sizes set the frame shape only (aspect ratio). Your photo is fitted inside without stretching.</p>
+          </div>
+          <div>
+            <div class="card-title">Grid overlay</div>
+            <div class="slider-item">
+              <label><span>Divisions across</span><span id="prac-divisions-val">6</span></label>
+              <input type="range" class="prac-slider" id="prac-divisions" min="2" max="20" value="6">
+            </div>
+            <div class="prac-row">
+              <label class="prac-btn"><input type="checkbox" id="prac-labels-toggle" checked> Labels (A, B, C / 1, 2, 3)</label>
+              <select class="prac-select" id="prac-grid-color" aria-label="Grid color">
+                <option value="#ffffff" selected>Grid: White</option>
+                <option value="#000000">Grid: Black</option>
+                <option value="#ff3c3c">Grid: Red</option>
+                <option value="#00f2ff">Grid: Cyan</option>
+                <option value="#f5c842">Grid: Gold</option>
+              </select>
+            </div>
+            <div class="slider-item">
+              <label><span>Grid opacity</span><span id="prac-grid-opacity-val">70%</span></label>
+              <input type="range" class="prac-slider" id="prac-grid-opacity" min="10" max="100" value="70">
+            </div>
+          </div>
+          <div>
+            <div class="card-title">Perspective guides</div>
+            <div class="prac-row">
+              <select class="prac-select" id="prac-guide-mode" aria-label="Perspective mode">
+                <option value="1" selected>1-point</option>
+                <option value="2">2-point</option>
+                <option value="3">3-point</option>
+              </select>
+              <select class="prac-select" id="prac-guide-color" aria-label="Guide color">
+                <option value="#00f2ff" selected>Guides: Cyan</option>
+                <option value="#ff3ca0">Guides: Magenta</option>
+                <option value="#f5c842">Guides: Gold</option>
+                <option value="#39ff85">Guides: Green</option>
+                <option value="#ffffff">Guides: White</option>
+              </select>
+              <label class="prac-btn"><input type="checkbox" id="prac-guides-toggle" checked> Show guides</label>
+            </div>
+            <div class="slider-item">
+              <label><span>Horizon line (height)</span><span id="prac-horizon-val">50%</span></label>
+              <input type="range" class="prac-slider" id="prac-horizon-slider" min="0" max="100" value="50">
+            </div>
+            <p class="prac-note">Drag the green horizon handle, or a blue vanishing-point handle. Vanishing points can be dragged off the photo — they live in an extended space around the frame, not clamped to it.</p>
+          </div>
+          <div>
+            <div class="card-title">Draw over &amp; finish</div>
+            <div class="prac-row">
+              <select class="prac-select" id="prac-sketch-color" aria-label="Pencil color">
+                <option value="#ff3ca0" selected>Pencil: Magenta</option>
+                <option value="#ffffff">Pencil: White</option>
+                <option value="#000000">Pencil: Black</option>
+                <option value="#00f2ff">Pencil: Cyan</option>
+                <option value="#f5c842">Pencil: Gold</option>
+                <option value="#39ff85">Pencil: Green</option>
+              </select>
+              <button class="prac-btn" id="prac-sketch-clear" type="button">Clear sketch</button>
+            </div>
+            <div class="prac-row" style="margin-top:8px">
+              <button class="prac-btn" id="prac-lock-btn" type="button">🔓 Unlock</button>
+              <button class="prac-btn" id="prac-zen-btn" type="button">Zen mode</button>
+              <button class="prac-btn" id="prac-export-btn" type="button">⬇ Export PNG</button>
+            </div>
+            <div class="prac-status" id="prac-status">Import a photo to begin.</div>
+          </div>
+        </div>
+        <button class="prac-zen-exit" id="prac-zen-exit" type="button">Tap to exit Zen mode</button>
+        <div class="card" style="padding:0">
+          <div class="prac-frame" id="prac-frame" style="aspect-ratio: 9 / 16">
+            <canvas id="prac-photo-canvas"></canvas>
+            <canvas id="prac-overlay-canvas"></canvas>
+            <canvas id="prac-sketch-canvas"></canvas>
+            <div id="prac-vp-layer" style="position:absolute;inset:0;overflow:visible;pointer-events:none"></div>
+          </div>
+        </div>
+        <p class="prac-note">No lessons in this slice yet — this is the photo, grid, perspective, sketch and export workspace only. All work stays on this device; nothing is uploaded.</p>
+      </div>
+
     </div><!-- /main-panel -->
 
     <!-- BOTTOM NAV -->
@@ -720,6 +879,9 @@ input[type="color"] {
       </button>
       <button class="nav-btn" data-tab="grid" onclick="switchTab('grid',this)">
         <span class="nav-icon">📐</span>Grid/AR
+      </button>
+      <button class="nav-btn" data-tab="practice" onclick="switchTab('practice',this)">
+        <span class="nav-icon">✏️</span>Practice
       </button>
     </nav>
   </div><!-- /hud -->
@@ -1255,6 +1417,289 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('mix-a-swatch').style.background = rgb2hex(state.mixA.r,state.mixA.g,state.mixA.b);
   document.getElementById('mix-b-swatch').style.background = rgb2hex(state.mixB.r,state.mixB.g,state.mixB.b);
 });
+
+// ══════════════════════════════════════════════════════════════
+//  PRACTICE TAB — photo + grid + perspective + sketch + export
+//  Added 2026-11-01, local build only. All IDs prefixed prac-.
+//  No existing tab code is modified; this block is self-contained.
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var frame = document.getElementById('prac-frame');
+  if(!frame) return;
+  var photoCanvas = document.getElementById('prac-photo-canvas');
+  var overlayCanvas = document.getElementById('prac-overlay-canvas');
+  var sketchCanvas = document.getElementById('prac-sketch-canvas');
+  var vpLayer = document.getElementById('prac-vp-layer');
+  var panel = document.getElementById('tab-practice');
+  var statusEl = document.getElementById('prac-status');
+
+  // World coordinates: frame left=0, right=1; top=0, bottom=1.
+  // Vanishing points may live outside that range (extended space).
+  var S = {
+    photo: null, divisions: 6, labels: true, gridColor: '#ffffff', gridOpacity: 0.7,
+    guides: true, guideColor: '#00f2ff', mode: 1, horizon: 0.5,
+    vps: [{x:0.5, y:0.5, kind:'h'}],
+    locked: false, zen: false, sketchColor: '#ff3ca0',
+    orientation: 'portrait', aspect: 0.5625
+  };
+  function setStatus(t){ if(statusEl) statusEl.textContent = t; }
+  function frameW(){ return frame.clientWidth || 300; }
+  function frameH(){ return frame.clientHeight || 300; }
+  function worldToPx(v){ return { x: v.x * frameW(), y: v.y * frameH() }; }
+  function syncModeVPs(){
+    if(S.mode === 1){ S.vps = [{x:0.5, y:S.horizon, kind:'h'}]; }
+    else if(S.mode === 2){ S.vps = [{x:-0.25, y:S.horizon, kind:'h'}, {x:1.25, y:S.horizon, kind:'h'}]; }
+    else { S.vps = [{x:-0.25, y:S.horizon, kind:'h'}, {x:1.25, y:S.horizon, kind:'h'}, {x:0.5, y:-0.6, kind:'v'}]; }
+  }
+  function applyAspect(){
+    var a = S.aspect;
+    if(S.orientation === 'landscape' && a < 1) a = 1 / a;
+    if(S.orientation === 'portrait' && a > 1) a = 1 / a;
+    frame.style.aspectRatio = a.toFixed(4) + ' / 1';
+    pracResize();
+  }
+  function sizeCanvas(c){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.max(1, Math.round(frameW() * dpr));
+    c.height = Math.max(1, Math.round(frameH() * dpr));
+  }
+  function drawPhoto(){
+    var ctx = photoCanvas.getContext('2d');
+    ctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
+    ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, photoCanvas.width, photoCanvas.height);
+    if(!S.photo) return;
+    // Fit inside (contain) — never stretch the photo.
+    var s = Math.min(photoCanvas.width / S.photo.width, photoCanvas.height / S.photo.height);
+    var w = S.photo.width * s, h = S.photo.height * s;
+    ctx.drawImage(S.photo, (photoCanvas.width - w) / 2, (photoCanvas.height - h) / 2, w, h);
+  }
+  function drawOverlay(){
+    var ctx = overlayCanvas.getContext('2d');
+    var W = overlayCanvas.width, H = overlayCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+    // Grid
+    ctx.save();
+    ctx.globalAlpha = S.gridOpacity;
+    ctx.strokeStyle = S.gridColor; ctx.fillStyle = S.gridColor; ctx.lineWidth = Math.max(1, W / 600);
+    for(var i = 1; i < S.divisions; i++){
+      var x = (i / S.divisions) * W;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for(var j = 1; j < S.divisions; j++){
+      var y = (j / S.divisions) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    if(S.labels){
+      ctx.font = Math.max(12, Math.round(W / 45)) + 'px monospace';
+      for(var c = 0; c < S.divisions; c++){
+        var label = String.fromCharCode(65 + c);
+        ctx.fillText(label, (c / S.divisions) * W + 6, 18);
+      }
+      for(var r = 0; r < S.divisions; r++){
+        ctx.fillText(String(r + 1), 6, (r / S.divisions) * H + 18);
+      }
+    }
+    ctx.restore();
+    if(!S.guides) return;
+    // Horizon line
+    var hy = S.horizon * H;
+    ctx.save();
+    ctx.strokeStyle = '#39ff85'; ctx.lineWidth = Math.max(1, W / 500);
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(0, hy); ctx.lineTo(W, hy); ctx.stroke();
+    ctx.setLineDash([]);
+    // Guide lines: VP -> corners and edge midpoints (canvas clips off-frame VPs).
+    ctx.strokeStyle = S.guideColor; ctx.globalAlpha = 0.9; ctx.lineWidth = Math.max(1, W / 700);
+    var targets = [[0,0],[W,0],[0,H],[W,H],[W/2,0],[W/2,H],[0,H/2],[W,H/2]];
+    S.vps.forEach(function(v){
+      var p = { x: v.x * W, y: v.y * H };
+      targets.forEach(function(t){
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(t[0], t[1]); ctx.stroke();
+      });
+    });
+    ctx.restore();
+  }
+  function renderHandles(){
+    vpLayer.innerHTML = '';
+    if(S.locked) return;
+    // Horizon handle (left edge, draggable vertically)
+    var hh = document.createElement('div');
+    hh.className = 'prac-handle horizon'; hh.style.pointerEvents = 'auto';
+    hh.style.left = '0px'; hh.style.top = (S.horizon * 100) + '%';
+    hh.innerHTML = '<span class="prac-handle-label">Horizon</span>';
+    makeDraggable(hh, 'horizon');
+    vpLayer.appendChild(hh);
+    S.vps.forEach(function(v, idx){
+      var p = worldToPx(v);
+      var h = document.createElement('div');
+      h.className = 'prac-handle vp'; h.style.pointerEvents = 'auto';
+      // Handles beyond the frame are still reachable: they sit in the
+      // overflow-visible layer, positioned by world coordinates.
+      h.style.left = p.x + 'px'; h.style.top = p.y + 'px';
+      h.innerHTML = '<span class="prac-handle-label">VP ' + (idx + 1) + '</span>';
+      makeDraggable(h, 'vp', idx);
+      vpLayer.appendChild(h);
+    });
+  }
+  function redraw(){
+    drawPhoto(); drawOverlay(); renderHandles();
+  }
+  function pracResize(){
+    // Preserve the sketch across resizes (canvas resizing normally wipes it).
+    var keep = document.createElement('canvas');
+    keep.width = sketchCanvas.width; keep.height = sketchCanvas.height;
+    if(keep.width > 0 && keep.height > 0) keep.getContext('2d').drawImage(sketchCanvas, 0, 0);
+    sizeCanvas(photoCanvas); sizeCanvas(overlayCanvas); sizeCanvas(sketchCanvas);
+    if(keep.width > 0 && keep.height > 0) sketchCanvas.getContext('2d').drawImage(keep, 0, 0, sketchCanvas.width, sketchCanvas.height);
+    redraw();
+  }
+  function makeDraggable(el, kind, idx){
+    el.addEventListener('pointerdown', function(e){
+      if(S.locked) return;
+      e.preventDefault(); e.stopPropagation();
+      el.setPointerCapture(e.pointerId);
+      var rect = frame.getBoundingClientRect();
+      function move(ev){
+        var x = (ev.clientX - rect.left) / rect.width;
+        var y = (ev.clientY - rect.top) / rect.height;
+        if(kind === 'horizon'){
+          S.horizon = Math.max(0, Math.min(1, y));
+          document.getElementById('prac-horizon-slider').value = Math.round(S.horizon * 100);
+          document.getElementById('prac-horizon-val').textContent = Math.round(S.horizon * 100) + '%';
+          S.vps.forEach(function(v){ if(v.kind === 'h') v.y = S.horizon; });
+        } else {
+          // Deliberately NOT clamped to [0,1]: VPs may live off-frame.
+          S.vps[idx].x = Math.max(-1.5, Math.min(2.5, x));
+          S.vps[idx].y = Math.max(-1.5, Math.min(2.5, y));
+        }
+        redraw();
+      }
+      function up(){ el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); }
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+    });
+  }
+  function loadPhotoFile(file){
+    if(!file) return;
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function(){
+      S.photo = img; pracResize(); setStatus('Photo loaded. Drag the horizon and vanishing points.');
+    };
+    img.onerror = function(){ setStatus('Could not load that photo. Try another image.'); };
+    img.src = url;
+  }
+  document.getElementById('prac-photo-input').addEventListener('change', function(e){ loadPhotoFile(e.target.files[0]); });
+  document.getElementById('prac-camera-input').addEventListener('change', function(e){ loadPhotoFile(e.target.files[0]); });
+  document.getElementById('prac-orient-portrait').addEventListener('click', function(){
+    S.orientation = 'portrait';
+    document.getElementById('prac-orient-portrait').classList.add('active');
+    document.getElementById('prac-orient-landscape').classList.remove('active');
+    applyAspect();
+  });
+  document.getElementById('prac-orient-landscape').addEventListener('click', function(){
+    S.orientation = 'landscape';
+    document.getElementById('prac-orient-landscape').classList.add('active');
+    document.getElementById('prac-orient-portrait').classList.remove('active');
+    applyAspect();
+  });
+  document.querySelectorAll('.prac-size-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.prac-size-btn').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      S.aspect = parseFloat(b.getAttribute('data-prac-aspect'));
+      applyAspect();
+    });
+  });
+  document.getElementById('prac-divisions').addEventListener('input', function(e){
+    S.divisions = parseInt(e.target.value, 10);
+    document.getElementById('prac-divisions-val').textContent = S.divisions;
+    drawOverlay();
+  });
+  document.getElementById('prac-labels-toggle').addEventListener('change', function(e){ S.labels = e.target.checked; drawOverlay(); });
+  document.getElementById('prac-grid-color').addEventListener('change', function(e){ S.gridColor = e.target.value; drawOverlay(); });
+  document.getElementById('prac-grid-opacity').addEventListener('input', function(e){
+    S.gridOpacity = parseInt(e.target.value, 10) / 100;
+    document.getElementById('prac-grid-opacity-val').textContent = e.target.value + '%';
+    drawOverlay();
+  });
+  document.getElementById('prac-guide-mode').addEventListener('change', function(e){
+    S.mode = parseInt(e.target.value, 10); syncModeVPs(); redraw();
+  });
+  document.getElementById('prac-guide-color').addEventListener('change', function(e){ S.guideColor = e.target.value; drawOverlay(); });
+  document.getElementById('prac-guides-toggle').addEventListener('change', function(e){ S.guides = e.target.checked; drawOverlay(); });
+  document.getElementById('prac-horizon-slider').addEventListener('input', function(e){
+    S.horizon = parseInt(e.target.value, 10) / 100;
+    document.getElementById('prac-horizon-val').textContent = e.target.value + '%';
+    S.vps.forEach(function(v){ if(v.kind === 'h') v.y = S.horizon; });
+    redraw();
+  });
+  document.getElementById('prac-sketch-color').addEventListener('change', function(e){ S.sketchColor = e.target.value; });
+  document.getElementById('prac-sketch-clear').addEventListener('click', function(){
+    var ctx = sketchCanvas.getContext('2d');
+    ctx.clearRect(0, 0, sketchCanvas.width, sketchCanvas.height);
+    setStatus('Sketch cleared.');
+  });
+  document.getElementById('prac-lock-btn').addEventListener('click', function(e){
+    S.locked = !S.locked;
+    e.target.textContent = S.locked ? '🔒 Locked' : '🔓 Unlock';
+    e.target.classList.toggle('locked', S.locked);
+    setStatus(S.locked ? 'Locked — photo, grid and guides cannot be moved.' : 'Unlocked.');
+    renderHandles();
+  });
+  function setZen(on){
+    S.zen = on;
+    panel.classList.toggle('prac-zen-mode', on);
+    setStatus(on ? 'Zen mode — tap the button above the photo to exit.' : 'Zen mode off.');
+  }
+  document.getElementById('prac-zen-btn').addEventListener('click', function(){ setZen(true); });
+  document.getElementById('prac-zen-exit').addEventListener('click', function(){ setZen(false); });
+  document.getElementById('prac-export-btn').addEventListener('click', function(){
+    var ex = document.createElement('canvas');
+    ex.width = photoCanvas.width; ex.height = photoCanvas.height;
+    var ctx = ex.getContext('2d');
+    ctx.drawImage(photoCanvas, 0, 0);
+    ctx.drawImage(overlayCanvas, 0, 0);
+    ctx.drawImage(sketchCanvas, 0, 0);
+    var a = document.createElement('a');
+    a.download = 'prism-practice.png';
+    a.href = ex.toDataURL('image/png');
+    a.click();
+    setStatus('Exported PNG.');
+  });
+  // Sketch drawing (pointer events, touch-friendly)
+  (function(){
+    var drawing = false, last = null;
+    function pos(e){
+      var r = sketchCanvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left) / r.width * sketchCanvas.width, y: (e.clientY - r.top) / r.height * sketchCanvas.height };
+    }
+    sketchCanvas.addEventListener('pointerdown', function(e){
+      if(S.locked) return;
+      drawing = true; last = pos(e);
+      sketchCanvas.setPointerCapture(e.pointerId);
+    });
+    sketchCanvas.addEventListener('pointermove', function(e){
+      if(!drawing || S.locked) return;
+      var p = pos(e), ctx = sketchCanvas.getContext('2d');
+      ctx.strokeStyle = S.sketchColor; ctx.lineWidth = Math.max(2, sketchCanvas.width / 300);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      last = p;
+    });
+    function end(){ drawing = false; last = null; }
+    sketchCanvas.addEventListener('pointerup', end);
+    sketchCanvas.addEventListener('pointercancel', end);
+  })();
+  // Resize after the tab becomes visible (frame has no size while hidden).
+  document.querySelectorAll('[data-tab="practice"]').forEach(function(b){
+    b.addEventListener('click', function(){ setTimeout(pracResize, 80); });
+  });
+  window.addEventListener('resize', pracResize);
+  // Expose only for debugging from the console; not used by other tabs.
+  window.pracResize = pracResize;
+})();
+
 </script>
 </body>
 </html>
