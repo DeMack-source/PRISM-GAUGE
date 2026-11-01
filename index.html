@@ -764,12 +764,10 @@ input[type="color"] {
         <div class="card prac-controls" id="prac-controls">
           <div class="card-title">Practice — Photo, Grid &amp; Perspective</div>
           <div class="prac-row">
-            <label class="prac-btn" style="display:flex;align-items:center">📷 Import photo
-              <input type="file" id="prac-photo-input" class="prac-file" accept="image/*" style="display:none">
-            </label>
-            <label class="prac-btn" style="display:flex;align-items:center">📸 Take photo
-              <input type="file" id="prac-camera-input" class="prac-file" accept="image/*" capture="environment" style="display:none">
-            </label>
+            <button class="prac-btn" id="prac-photo-btn" type="button">📷 Import photo</button>
+            <button class="prac-btn" id="prac-camera-btn" type="button">📸 Take photo</button>
+            <input type="file" id="prac-photo-input" class="prac-file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
+            <input type="file" id="prac-camera-input" class="prac-file" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
           </div>
           <div>
             <div class="card-title">Paper / frame</div>
@@ -1591,6 +1589,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   document.getElementById('prac-photo-input').addEventListener('change', function(e){ loadPhotoFile(e.target.files[0]); });
   document.getElementById('prac-camera-input').addEventListener('change', function(e){ loadPhotoFile(e.target.files[0]); });
+  // Buttons trigger the picker directly: a label wrapping a display:none
+  // input does not reliably open the picker on Android Chrome/WebView.
+  document.getElementById('prac-photo-btn').addEventListener('click', function(){ document.getElementById('prac-photo-input').click(); });
+  document.getElementById('prac-camera-btn').addEventListener('click', function(){ document.getElementById('prac-camera-input').click(); });
   document.getElementById('prac-orient-portrait').addEventListener('click', function(){
     S.orientation = 'portrait';
     document.getElementById('prac-orient-portrait').classList.add('active');
